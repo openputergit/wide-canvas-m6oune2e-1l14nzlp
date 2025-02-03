@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leftover Magic - Recipe Generator</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --soft-green: #98c1a2;
+            --warm-orange: #ffa07a;
+            --muted-pink: #f8c4b4;
+            --off-white: #faf7f5;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--off-white) 0%, #ffffff 100%);
+            min-height: 100vh;
+        }
+
+        .clay-morphism {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 24px;
+            box-shadow: 
+                35px 35px 68px 0px rgba(145, 192, 255, 0.2),
+                inset -8px -8px 16px 0px rgba(145, 192, 255, 0.3),
+                inset 0px 11px 28px 0px rgb(255, 255, 255);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .ingredient-pill {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .ingredient-pill:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .generate-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            background-color: #ff8c5a !important;
+        }
+
+        .generate-btn:active {
+            transform: translateY(2px) scale(0.98);
+        }
+
+        @keyframes steam {
+            0% { transform: translateY(0) scale(1); opacity: 0.8; }
+            50% { transform: translateY(-15px) scale(1.2); opacity: 0.4; }
+            100% { transform: translateY(-30px) scale(1.4); opacity: 0; }
+        }
+
+        .steam {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            animation: steam 2s infinite;
+            color: var(--warm-orange);
+        }
+
+        .category-section {
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .category-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        .input-container::before {
+            content: "🔍";
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2em;
+            pointer-events: none;
+        }
+
+        #suggestions {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(152, 193, 162, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(152, 193, 162, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(152, 193, 162, 0); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .recipe-card {
+            transition: all 0.3s ease;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <main class="max-w-6xl mx-auto">
+        <!-- Hero Section -->
+        <div class="clay-morphism p-8 mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-center mb-4 font-[Poppins]" style="color: var(--warm-orange)">
+                Leftover Magic ✨
+            </h1>
+            <p class="text-center text-gray-600 mb-8">Transform your leftovers into delicious new meals!</p>
+
+            <!-- Input Field -->
+            <div class="input-container mb-8">
+                <input type="text" 
+                       id="ingredientInput"
+                       class="w-full p-4 pl-12 rounded-xl text-lg border-2 clay-morphism focus:outline-none focus:border-[var(--soft-green)]"
+                       placeholder="What ingredients do you have left in your fridge? 🍅 🥑 🥕"
+                       draggable="true">
+                <div id="suggestions" class="hidden absolute w-full bg-white rounded-xl mt-2 shadow-lg z-10 clay-morphism"></div>
+            </div>
+
+            <!-- Selected Ingredients -->
+            <div id="selectedIngredients" class="flex flex-wrap gap-2 mb-8 min-h-[60px] p-4 clay-morphism">
+                <span class="text-gray-400 italic">Drag ingredients here or click to add them</span>
+            </div>
+
+            <!-- Categories -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Category sections will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Generate Button -->
+        <button id="generateBtn" class="generate-btn fixed bottom-8 right-8 clay-morphism px-8 py-4 text-xl font-bold rounded-full bg-[var(--warm-orange)] text-white flex items-center">
+            <i class="bi bi-magic mr-2"></i>
+            Create Recipe
+            <div class="steam hidden">
+                <i class="bi bi-cloud-fill"></i>
+            </div>
+        </button>
+
+        <!-- Recipe Reveal Section -->
+        <div id="recipeReveal" class="hidden clay-morphism p-8 mt-8">
+            <!-- Content will be dynamically added here -->
+        </div>
+    </main>
+
+    <script>
+        // Categories data
+        const categories = {
+            'Proteins': ['Chicken', 'Beef', 'Fish', 'Eggs', 'Tofu'],
+            'Vegetables': ['Tomatoes', 'Carrots', 'Broccoli', 'Spinach', 'Potatoes'],
+            'Grains': ['Rice', 'Pasta', 'Bread', 'Quinoa'],
+            'Dairy': ['Cheese', 'Milk', 'Yogurt', 'Cream'],
+            'Herbs & Spices': ['Basil', 'Garlic', 'Ginger', 'Pepper'],
+        };
+
+        // Initialize categories
+        const categoryContainer = document.querySelector('.grid');
+        Object.entries(categories).forEach(([category, items], index) => {
+            const section = document.createElement('div');
+            section.className = `category-section clay-morphism p-4`;
+            section.style.animationDelay = `${index * 100}ms`;
+            
+            section.innerHTML = `
+                <h3 class="font-[Poppins] font-semibold mb-2">${category}</h3>
+                <div class="flex flex-wrap gap-2">
+                    ${items.map(item => `
+                        <span class="ingredient-pill px-3 py-1 bg-[var(--soft-green)] bg-opacity-20 rounded-full" draggable="true">
+                            ${item}
+                        </span>
+                    `).join('')}
+                </div>
+            `;
+            
+            categoryContainer.appendChild(section);
+            setTimeout(() => section.classList.add('visible'), 100 * index);
+        });
+
+        // Initialize functionality
+        const ingredientInput = document.getElementById('ingredientInput');
+        const selectedIngredientsContainer = document.getElementById('selectedIngredients');
+        const generateBtn = document.getElementById('generateBtn');
+        const recipeReveal = document.getElementById('recipeReveal');
+        let selectedIngredients = new Set();
+
+        // Add ingredient handlers
+        document.querySelectorAll('.ingredient-pill').forEach(pill => {
+            pill.addEventListener('click', () => addIngredient(pill.textContent.trim()));
+            pill.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', pill.textContent.trim());
+            });
+        });
+
+        function addIngredient(ingredient) {
+            if (!selectedIngredients.has(ingredient)) {
+                selectedIngredients.add(ingredient);
+                const pill = document.createElement('span');
+                pill.className = 'ingredient-pill px-3 py-1 bg-[var(--muted-pink)] rounded-full flex items-center';
+                pill.innerHTML = `${ingredient} <i class="bi bi-x ml-2 cursor-pointer"></i>`;
+                pill.querySelector('i').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectedIngredients.delete(ingredient);
+                    pill.remove();
+                    updateSelectedIngredientsDisplay();
+                });
+                selectedIngredientsContainer.appendChild(pill);
+                updateSelectedIngredientsDisplay();
+            }
+        }
+
+        function updateSelectedIngredientsDisplay() {
+            const placeholder = selectedIngredientsContainer.querySelector('.text-gray-400');
+            if (selectedIngredients.size > 0 && placeholder) {
+                placeholder.remove();
+            } else if (selectedIngredients.size === 0 && !placeholder) {
+                selectedIngredientsContainer.innerHTML = '<span class="text-gray-400 italic">Drag ingredients here or click to add them</span>';
+            }
+        }
+
+        generateBtn.addEventListener('click', () => {
+            if (selectedIngredients.size === 0) {
+                alert('Please select some ingredients first!');
+                return;
+            }
+
+            // Show cooking animation
+            generateBtn.querySelector('.steam').classList.remove('hidden');
+            
+            // Simulate recipe generation
+            recipeReveal.innerHTML = `
+                <div class="text-center">
+                    <div class="inline-block mb-8">
+                        <i class="bi bi-arrow-repeat text-4xl text-[var(--warm-orange)] cooking-animation"></i>
+                    </div>
+                    <div class="h-2 bg-gray-200 rounded-full mb-8">
+                        <div class="loading-bar h-full bg-[var(--muted-pink)] rounded-full transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                recipeReveal.innerHTML = `
+                    <div class="recipe-card clay-morphism p-6">
+                        <h2 class="text-2xl font-[Poppins] font-bold mb-4">Your Leftover Magic Recipe</h2>
+                        <div class="mb-4">
+                            <h3 class="font-semibold mb-2">Ingredients Used:</h3>
+                            <div class="flex flex-wrap gap-2">
+                                ${Array.from(selectedIngredients).map(ingredient => 
+                                    `<span class="px-3 py-1 bg-[var(--soft-green)] bg-opacity-20 rounded-full">${ingredient}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                        <div class="bg-[var(--soft-green)] bg-opacity-10 p-4 rounded-lg">
+                            <h3 class="font-[Poppins] font-semibold mb-2">Nutritional Information</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="text-center p-2 bg-white rounded-lg">
+                                    <p class="font-semibold">Calories</p>
+                                    <p>350 kcal</p>
+                                </div>
+                                <div class="text-center p-2 bg-white rounded-lg">
+                                    <p class="font-semibold">Protein</p>
+                                    <p>25g</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }, 2000);
+        });
+
+        // Drag and drop functionality
+        ingredientInput.addEventListener('dragover', (e) => e.preventDefault());
+        ingredientInput.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const ingredient = e.dataTransfer.getData('text/plain');
+            addIngredient(ingredient);
+        });
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
